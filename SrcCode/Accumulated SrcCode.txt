@@ -1,0 +1,1648 @@
+
+
+//AVERAGE METHOD
+
+
+#include "stdafx.h"
+#include <stdio.h>
+#include <iostream>
+#include <stdlib.h>
+
+using namespace std;
+
+int main(int argc, char *argv[])
+{
+	// Define file pointer and variables
+	FILE *file;
+	const int BytesPerPixel = 3;
+	const int Width = 512;
+	const int Height = 512;
+	int count = 0;
+	// Check for proper syntax
+	if (argc < 3)
+	{
+		cout << "Syntax Error - Incorrect Parameter Usage:" << endl;
+		cout << "program_name input_image.raw output_image.raw [BytesPerPixel = 1] [Size = 256]" << endl;
+		return 0;
+	}
+
+	// Allocate image data array
+	unsigned char Imagedata[Height][Width][BytesPerPixel];
+	unsigned char opImagedata[Height][Width];
+	unsigned char oneDime[Height*Width*BytesPerPixel];
+
+	// Read image (filename specified by first argument) into image data matrix
+	if (!(file = fopen(argv[1], "rb"))) {
+		cout << "Cannot open file: " << argv[1] << endl;
+		exit(1);
+	}
+	fread(oneDime, sizeof(unsigned char), Height*Width*BytesPerPixel, file);
+	fclose(file);
+
+	//Separating into separate channels 
+
+	while (count<Height*Width*BytesPerPixel)
+	{
+		for (int i = 0; i < Height; i++)
+		{
+			for (int j = 0; j < Width; j++)
+			{
+				Imagedata[i][j][0] = oneDime[count];		//Red
+				Imagedata[i][j][1] = oneDime[count + 1];	//Green
+				Imagedata[i][j][2] = oneDime[count + 2];	//Blue
+				count += 3;
+
+			}
+		}
+	}
+
+
+	//Average method
+
+	int a = 0;
+
+	for (int i = 0; i < Height; i++)
+	{
+		for (int j = 0; j < Width; j++)
+		{
+
+			a = ((int)Imagedata[i][j][0] + (int)Imagedata[i][j][1] + (int)Imagedata[i][j][2]) / 3; //Sum/3
+			opImagedata[i][j] = (unsigned)a;
+		}
+	}
+
+	// Write image data (filename specified by second argument) from image data matrix
+
+	if (!(file = fopen(argv[2], "wb")))
+	{
+		cout << "Cannot open file: " << argv[2] << endl;
+		exit(1);
+	}
+
+	fwrite(opImagedata, sizeof(unsigned char), Height*Width, file);
+	fclose(file);
+	return 0;
+}
+
+//Lightness METHOD
+
+#include "stdafx.h"
+#include <stdio.h>
+#include <iostream>
+#include <stdlib.h>
+
+using namespace std;
+
+int main(int argc, char *argv[])
+
+{
+	// Define file pointer and variables
+	FILE *file;
+	const int BytesPerPixel = 3;
+	const int Width = 512;
+	const int Height = 512;
+	int count = 0;
+	
+	// Check for proper syntax
+	if (argc < 3) {
+		cout << "Syntax Error - Incorrect Parameter Usage:" << endl;
+		cout << "program_name input_image.raw output_image.raw [BytesPerPixel = 1] [Size = 256]" << endl;
+		return 0;
+	}
+
+	// Allocate image data array
+	unsigned char oneDime[Height*Width*BytesPerPixel];
+	unsigned char Imagedata[Height][Width][BytesPerPixel];
+	unsigned char opImagedata[Height][Width];
+	
+
+	// Read image (filename specified by first argument) into image data matrix
+	if (!(file = fopen(argv[1], "rb"))) {
+		cout << "Cannot open file: " << argv[1] << endl;
+		exit(1);
+	}
+	fread(oneDime, sizeof(unsigned char), Height*Width*BytesPerPixel, file);
+	fclose(file);
+
+	//Separate the channels for R,G and B
+	count = 0;
+	while (count < Height*Width*BytesPerPixel)
+	{
+		for (int i = 0; i < Height; i++)
+		{
+			for (int j = 0; j < Width; j++)
+			{
+				Imagedata[i][j][0] = oneDime[count];
+				Imagedata[i][j][1] = oneDime[count + 1];
+				Imagedata[i][j][2] = oneDime[count + 2];
+				count += 3;
+
+			}
+		}
+	}
+
+	//Calculate the minimum and maximum value of R, G and B at each pixel
+	//Follow the lightness formula and assign the resulting value to an Output 2D array
+	
+	int a[3];
+	int min, max = 0;
+		
+	for (int i = 0; i < Height; i++)
+	{
+		for (int j = 0; j < Width; j++)
+		{
+			min = max = (int)Imagedata[i][j][0];
+
+			for (int k = 0; k < 3; k++)
+				{
+				a[k] = (int)Imagedata[i][j][k];
+				if (min > a[k])
+				{
+					min = a[k];
+				}
+				else if (max < a[k])
+				{
+					max = a[k];
+				}
+			}
+			opImagedata[i][j] = (unsigned)((max + min)/2);
+		}
+	}
+	
+	// Write image data (filename specified by second argument) from image data matrix
+
+	if (!(file = fopen(argv[2], "wb"))) {
+		cout << "Cannot open file: " << argv[2] << endl;
+		exit(1);
+	}
+
+	fwrite(opImagedata, sizeof(unsigned char), Height*Width, file);
+	fclose(file);
+	return 0;
+}
+
+
+//Luminosity METHOD
+
+#include "stdafx.h"
+#include <stdio.h>
+#include <iostream>
+#include <stdlib.h>
+
+using namespace std;
+
+int main(int argc, char *argv[])
+
+{
+	// Define file pointer and variables
+	FILE *file;
+	const int BytesPerPixel = 3;
+	const int Width = 512;
+	const int Height = 512;
+	int count = 0;
+	// Check for proper syntax
+	if (argc < 3) {
+		cout << "Syntax Error - Incorrect Parameter Usage:" << endl;
+		cout << "program_name input_image.raw output_image.raw [BytesPerPixel = 1] [Size = 256]" << endl;
+		return 0;
+	}
+
+	// Allocate image data array
+	unsigned char Imagedata[Height][Width][BytesPerPixel];
+	unsigned char opImagedata[Height][Width];
+	unsigned char oneDime[Height*Width*BytesPerPixel];
+
+	// Read image (filename specified by first argument) into image data matrix
+	if (!(file = fopen(argv[1], "rb"))) {
+		cout << "Cannot open file: " << argv[1] << endl;
+		exit(1);
+	}
+	fread(oneDime, sizeof(unsigned char), Height*Width*BytesPerPixel, file);
+	fclose(file);
+
+	//Separating into separate channels 
+	while (count<Height*Width*BytesPerPixel)
+	{
+		for (int i = 0; i < Height; i++)
+		{
+			for (int j = 0; j < Width; j++)
+			{
+				Imagedata[i][j][0] = oneDime[count];		//Red
+				Imagedata[i][j][1] = oneDime[count + 1];	//Green
+				Imagedata[i][j][2] = oneDime[count + 2];	//Blue
+				count += 3;
+
+			}
+		}
+	}
+
+	//Luminosity method
+	int a = 0;
+
+	for (int i = 0; i < Height; i++)
+	{
+		for (int j = 0; j < Width; j++)
+		{
+			a = 0.21*(int)Imagedata[i][j][0] + 0.72*(int)Imagedata[i][j][1] + 0.07*(int)Imagedata[i][j][2]; 
+			opImagedata[i][j] = (unsigned)a;
+		}
+	}
+
+	// Write image data (filename specified by second argument) from image data matrix
+
+	if (!(file = fopen(argv[2], "wb"))) {
+		cout << "Cannot open file: " << argv[2] << endl;
+		exit(1);
+	}
+
+	fwrite(opImagedata, sizeof(unsigned char), Height*Width, file);
+	fclose(file);
+	return 0;
+}
+
+//CMY color model
+
+
+#include "stdafx.h"
+#include <stdio.h>
+#include <iostream>
+#include <stdlib.h>
+#include <math.h>
+
+
+using namespace std;
+
+int main(int argc, char *argv[])
+
+{
+	// Define file pointer and variables
+	FILE *file;
+	const int BytesPerPixel = 3;
+	const int Width = 854;
+	const int Height = 480;
+	int count = 0;
+	// Check for proper syntax
+	if (argc < 3) {
+		cout << "Syntax Error - Incorrect Parameter Usage:" << endl;
+		cout << "program_name input_image.raw output_image.raw [BytesPerPixel = 1] [Size = 256]" << endl;
+		return 0;
+	}
+
+	// Allocate image data array
+	unsigned char Imagedata[Height][Width][BytesPerPixel];
+	unsigned char opImagedata[Height][Width][BytesPerPixel];
+	unsigned char oneDime[Height*Width*BytesPerPixel];
+
+	// Read image (filename specified by first argument) into image data matrix
+	if (!(file = fopen(argv[1], "rb"))) {
+		cout << "Cannot open file: " << argv[1] << endl;
+		exit(1);
+	}
+	fread(oneDime, sizeof(unsigned char), Height*Width*BytesPerPixel, file);
+	fclose(file);
+
+	//Separate into R G and B channels
+	while (count<Height*Width*BytesPerPixel)
+	{
+		for (int i = 0; i < Height; i++)
+		{
+			for (int j = 0; j < Width; j++)
+			{
+				Imagedata[i][j][0] = oneDime[count];
+				Imagedata[i][j][1] = oneDime[count + 1];
+				Imagedata[i][j][2] = oneDime[count + 2];
+				count += 3;
+
+			}
+		}
+	}
+	
+	///////////////////////// INSERT YOUR PROCESSING CODE HERE /////////////////////////
+	for (int k = 0; k < 3; k++)
+	{
+		for (int i = 0; i < Height; i++)
+		{
+			for (int j = 0; j < Width; j++)
+
+			{
+				opImagedata[i][j][k] = (255 - Imagedata[i][j][k]);
+
+			}
+		}
+	}
+
+	// Write image data (filename specified by second argument) from image data matrix
+
+	if (!(file = fopen(argv[2], "wb"))) {
+		cout << "Cannot open file: " << argv[2] << endl;
+		exit(1);
+	}
+
+	fwrite(opImagedata, sizeof(unsigned char), Height*Width*BytesPerPixel, file);
+	fclose(file);
+	return 0;
+}
+
+//Bilinear Interpolation
+
+#include "stdafx.h"
+#include <stdio.h>
+#include <iostream>
+#include <stdlib.h>
+#include <math.h>
+#include <cstdlib>
+
+
+
+using namespace std;
+
+int main(int argc, char *argv[])
+
+{
+// Define file pointer and variables
+FILE *file;
+const int BytesPerPixel = 3;
+const int Width1 = 512.0;
+const int Height1 = 512.0;
+const int Width2 = 650.0;
+const int Height2 = 650.0;
+	
+	
+// Check for proper syntax
+if (argc < 3) {	
+	cout << "Syntax Error - Incorrect Parameter Usage:" << endl;
+	cout << "program_name input_image.raw output_image.raw [BytesPerPixel = 1] [Size = 256]" << endl;
+	return 0;
+}
+
+// Allocate image data array
+unsigned char Imagedata[Height1][Width1][BytesPerPixel];
+unsigned char opImagedata[Height2][Width2][BytesPerPixel];
+
+// Read image (filename specified by first argument) into image data matrix
+if (!(file = fopen(argv[1], "rb"))) {
+	cout << "Cannot open file: " << argv[1] << endl;
+	exit(1);
+}
+fread(Imagedata, sizeof(unsigned char), Height1*Width1*BytesPerPixel, file);
+fclose(file);
+
+//Bilinear Interpolation
+float a = Height1;
+float b = Height2;
+float Ratio = static_cast<float>(a) /static_cast<float>(b);
+	
+for (int i = 0; i < Height2; i++)
+{
+	for (int j = 0; j < Width2; j++)
+	{
+			
+		int w = (floor)(Ratio*j);			
+		int h = (floor)(Ratio*i);			
+		float w_f = (Ratio * j) - w;
+		float h_f = (Ratio * i) - h;
+			
+		for(int k = 0;k<3;k++)
+
+		{			
+			opImagedata[i][j][k] = (((int)Imagedata[h][w][k])*(1-w_f)*(1-h_f) + ((int)Imagedata[h][w+1][k])*(1-h_f)*(w_f) + ((int)Imagedata[h+1][w][k])*(1-w_f)*(h_f) + ((int)Imagedata[h+1][w+1][k])*(w_f)*(h_f));
+				
+		}
+			
+	}
+}
+
+// Write image data (filename specified by second argument) from image data matrix
+
+if (!(file = fopen(argv[2], "wb"))) {
+	cout << "Cannot open file: " << argv[2] << endl;
+	exit(1);
+}
+
+fwrite(opImagedata, sizeof(unsigned char), 650*650*3, file);
+fclose(file);
+return 0;
+}
+
+//Histogram equalisation method A
+
+#include "stdafx.h"
+#include <stdio.h>
+#include <iostream>
+#include <stdlib.h>
+#include <fstream>
+
+using namespace std;
+
+int main(int argc, char *argv[])
+
+{
+	// Define file pointer and variables
+	FILE *file;
+	const int BytesPerPixel = 3;
+	const int Width = 400;
+	const int Height = 300;
+	int count = 0;
+	// Check for proper syntax
+	if (argc < 3) {
+		cout << "Syntax Error - Incorrect Parameter Usage:" << endl;
+		cout << "program_name input_image.raw output_image.raw [BytesPerPixel = 1] [Size = 256]" << endl;
+		return 0;
+	}
+
+	// Allocate image data array
+	unsigned char Imagedata[Height][Width][BytesPerPixel];
+	unsigned char opImagedata[Height][Width][BytesPerPixel];
+	float hist[256][BytesPerPixel] = {0};
+	unsigned char oneDime[Height*Width*BytesPerPixel];
+	float chist[256][BytesPerPixel] = { 0 };
+
+	// Read image (filename specified by first argument) into image data matrix
+	if (!(file = fopen(argv[1], "rb"))) {
+		cout << "Cannot open file: " << argv[1] << endl;
+		exit(1);
+	}
+	fread(oneDime, sizeof(unsigned char), Height*Width*BytesPerPixel, file);
+	fclose(file);
+
+	//Separate the channels for R,G and B
+	count = 0;
+	while (count < Height*Width*BytesPerPixel)
+	{
+		for (int i = 0; i < Height; i++)
+		{
+			for (int j = 0; j < Width; j++)
+			{
+				Imagedata[i][j][0] = oneDime[count];
+				Imagedata[i][j][1] = oneDime[count + 1];
+				Imagedata[i][j][2] = oneDime[count + 2];
+				count += 3;
+
+			}
+		}
+	}
+	
+	//calculating histogram
+	for (int i = 0; i < Height; i++)
+	{
+		for (int j = 0; j < Width; j++)
+		{
+			for (int k = 0; k < 3; k++) 
+			{
+				for (int y = 0; y < 256; y++) 
+				{
+					if ((int)Imagedata[i][j][k] == y) 
+					{
+						hist[y][k] += 1;
+					}
+				}
+			}
+		}
+	}
+	//Calculating Look-up table
+	for (int k = 0; k < 3; k++)
+	{
+		for (int y = 0; y < 256; y++)
+		{
+			hist[y][k] /= 120000; //probability density
+			if (y > 0)
+			{
+				hist[y][k] += hist[y - 1][k]; //cumulative probability
+			}
+		}		
+		//equalisation
+		for (int z = 0; z < 256; z++) 
+		{
+			hist[z][k] *= 255;
+		}
+	}
+	/*//printing histogram values onto a CSV file
+	{
+		ofstream myfile;
+		myfile.open("ReqHist.csv");
+		for (int y = 0; y < 256; y++) {
+			myfile << "\n" << hist[y][2];
+		}
+		myfile.close();
+	}*/
+
+	//Histogram equalization
+	for (int i = 0; i < Height; i++) 
+	{
+		for (int j = 0; j < Width; j++) 
+		{
+			for (int k = 0; k < 3; k++) {
+
+
+				for (int y = 0; y < 256; y++)
+				{
+					if ((int)Imagedata[i][j][k] == y)
+					{
+						opImagedata[i][j][k] = (int)hist[y][k];
+
+					}
+
+				}
+			}
+		}
+	}
+	//calculating output histogram
+	for (int i = 0; i < Height; i++)
+	{
+		for (int j = 0; j < Width; j++)
+		{
+			for (int k = 0; k < 3; k++)
+			{
+				for (int y = 0; y < 256; y++)
+				{
+					if ((int)opImagedata[i][j][k] == y)
+					{
+						chist[y][k] += 1;
+					}
+				}
+			}
+		}
+	}
+
+	/*//printing output histogram values onto a CSV file
+	{
+		ofstream myfile;
+		myfile.open("BeqHist.csv");
+		for (int y = 0; y < 256; y++) {
+			myfile << "\n" << chist[y][2];
+		}
+		myfile.close();
+	}*/
+	//writing back into oneDime
+	count = 0;
+	while (count < Height*Width*BytesPerPixel)
+	{
+		for (int i = 0; i < Height; i++)
+		{
+			for (int j = 0; j < Width; j++)
+			{
+				oneDime[count] = opImagedata[i][j][0];
+				oneDime[count + 1] = opImagedata[i][j][1];
+				oneDime[count + 2] = opImagedata[i][j][2];
+				count += 3;
+
+			}
+		}
+	}
+	
+	
+	
+		// Write image data (filename specified by second argument) from image data matrix
+
+		if (!(file = fopen(argv[2], "wb"))) {
+			cout << "Cannot open file: " << argv[2] << endl;
+			exit(1);
+		}
+
+		fwrite(oneDime, sizeof(unsigned char), Height*Width*BytesPerPixel, file);
+		fclose(file);
+		return 0;
+	
+}
+
+//Histogram equalisation method B
+
+#include "stdafx.h"
+#include <stdio.h>
+#include <iostream>
+#include <stdlib.h>
+#include <fstream>
+
+using namespace std;
+
+int main(int argc, char *argv[])
+
+{
+	// Define file pointer and variables
+	FILE *file;
+	const int BytesPerPixel = 3;
+	const int Width = 400;
+	const int Height = 300;
+	int count = 0;
+	
+	// Check for proper syntax
+	if (argc < 3) {
+		cout << "Syntax Error - Incorrect Parameter Usage:" << endl;
+		cout << "program_name input_image.raw output_image.raw [BytesPerPixel = 1] [Size = 256]" << endl;
+		return 0;
+	}
+
+	// Allocate image data array
+	unsigned char Imagedata[Height][Width][BytesPerPixel];
+	int flagArr[Height][Width][BytesPerPixel] = { { {0} } };
+	float hist[256][BytesPerPixel] = { {0} };
+	unsigned char oneDime[Height*Width*BytesPerPixel];
+	unsigned char opImagedata[Height][Width][BytesPerPixel];
+	
+
+	// Read image (filename specified by first argument) into image data matrix
+	if (!(file = fopen(argv[1], "rb"))) {
+		cout << "Cannot open file: " << argv[1] << endl;
+		exit(1);
+	}
+	fread(oneDime, sizeof(unsigned char), Height*Width*BytesPerPixel, file);
+	fclose(file);
+
+	//Separate the channels for R,G and B
+	count = 0;
+	while (count < Height*Width*BytesPerPixel)
+	{
+		for (int i = 0; i < Height; i++)
+		{
+			for (int j = 0; j < Width; j++)
+			{
+				Imagedata[i][j][0] = oneDime[count];
+				Imagedata[i][j][1] = oneDime[count + 1];
+				Imagedata[i][j][2] = oneDime[count + 2];
+				count += 3;
+
+			}
+		}
+	}
+	
+	//calculate bins and equalisation values
+
+	int pixelTotal = Height * Width;
+	int bins = 256;
+	int eqBin = pixelTotal / bins;
+	int residue = ((Height*Width) - (eqBin * 256));
+	int done = 0;
+	/*
+	//calculating histogram
+	for (int i = 0; i < Height; i++)
+	{
+		for (int j = 0; j < Width; j++)
+		{
+			for (int k = 0; k < 3; k++)
+			{
+				for (int y = 0; y < 256; y++)
+				{
+					if ((int)Imagedata[i][j][k] == y)
+					{
+						hist[y][k] += 1;
+					}
+
+				}
+
+			}
+		}
+	}
+	*/
+
+	for (int k = 0; k < 3; k++) 
+	{
+		int c = 0;
+		int	count = eqBin;
+		for (int h = 0; h < 256; h++)
+		{
+			for (int i = 0; i < Height; i++)
+			{
+				for (int j = 0; j < Width; j++)
+				{
+
+					if (((int)Imagedata[i][j][k] == h) && (flagArr[i][j][k] == 0))
+					{
+						if (count == 0)
+						{
+							c++;
+							count = eqBin;
+						}
+						opImagedata[i][j][k] = c;
+						flagArr[i][j][k] = 1;
+						count--;
+					}
+
+				}
+			}
+		}
+	}
+
+	//residue pixel add
+	for (int k = 0; k < 3; k++)
+	{
+		done = 0;
+		int count2 = 0;
+		for (int i = 0; i < Height; i++)
+		{
+			for (int j = 0; j < Width; j++)
+			{
+
+				if ((int)Imagedata[i][j][k] == 0)
+				{
+					if (count2 == residue)
+					{
+						done = 1;
+						break;
+					}
+					opImagedata[i][j][k] = count2;
+					count2++;
+				}
+
+			}
+
+			if (done == 1)
+			{
+				break;
+			}
+		}
+	}
+
+	//calculating histogram
+	for (int k = 0; k < 3; k++)
+	{
+		for (int i = 0; i < Height; i++)
+		{
+			for (int j = 0; j < Width; j++)
+			{
+
+				for (int y = 0; y < 256; y++)
+				{
+					if ((int)opImagedata[i][j][k] == y)
+					{
+						hist[y][k] += 1;
+					}
+
+				}
+
+
+			}
+		}
+	}
+	for (int k = 0; k < 3; k++)
+	{
+		for (int y = 0; y < 256; y++)
+		{
+			hist[y][k] /= pixelTotal; //probability density
+			if (y > 0)
+			{
+				hist[y][k] += hist[y - 1][k]; //cumulative probability
+			}
+		}
+	}
+	
+	
+	//printing histogram values onto a CSV file
+	{
+		ofstream myfile;
+		myfile.open("RcumuHist.csv");
+		for (int y = 0; y < 256; y++) 
+		{
+			myfile << "\n" << hist[y][0];
+		}
+		myfile.close();
+	}
+
+	//writing back into oneDime
+	count = 0;
+	while (count < Height*Width*BytesPerPixel)
+	{
+		for (int i = 0; i < Height; i++)
+		{
+			for (int j = 0; j < Width; j++)
+			{
+				oneDime[count] = opImagedata[i][j][0];
+				oneDime[count + 1] = opImagedata[i][j][1];
+				oneDime[count + 2] = opImagedata[i][j][2];
+				count += 3;
+
+			}
+		}
+	}
+
+	
+	// Write image data (filename specified by second argument) from image data matrix
+
+	if (!(file = fopen(argv[2], "wb"))) {
+		cout << "Cannot open file: " << argv[2] << endl;
+		exit(1);
+	}
+
+	fwrite(oneDime, sizeof(unsigned char), Height*Width*BytesPerPixel, file);
+	fclose(file);
+	return 0;
+
+}
+
+//Oil Painting effect
+
+#include "stdafx.h"
+#include <stdio.h>
+#include <iostream>
+#include <stdlib.h>
+#include <fstream>
+#include <string.h>
+
+
+using namespace std;
+int findMax(int array[]) {
+	int max = array[0];
+	int argmax = 0;
+	for (int i = 1; i < 256; i++) {
+		if (array[i] > max) {
+			max = array[i];
+			argmax = i;
+		}
+	}
+	return argmax;
+}
+int main(int argc, char *argv[])
+
+{
+	// Define file pointer and variables
+	FILE *file;
+	const int BytesPerPixel = 3;
+	const int Width = 600;
+	const int Height = 338;
+	const int radius = 5;
+	const int quant = 8;
+	
+	
+	// Check for proper syntax
+	if (argc < 3) {
+		cout << "Syntax Error - Incorrect Parameter Usage:" << endl;
+		cout << "program_name input_image.raw output_image.raw [BytesPerPixel = 1] [Size = 256]" << endl;
+		return 0;
+	}
+
+	// Allocate image data array
+	unsigned char oneDime[Height*Width*BytesPerPixel];
+	unsigned char Imagedata[Height][Width][BytesPerPixel];
+	unsigned char paddedImageArray[Height + radius][Width + radius][BytesPerPixel] = { { { 0 } } };
+	unsigned char paddedImageArray2[Height + radius][Width + radius][BytesPerPixel] = { { { 0 } } };
+	
+	
+	int count = 0;
+	int hist[256][BytesPerPixel] = {{ 0 }};
+	int chist[256] = { 0 };
+
+	// Read image (filename specified by first argument) into image data matrix
+	if (!(file = fopen(argv[1], "rb"))) {
+		cout << "Cannot open file: " << argv[1] << endl;
+		exit(1);
+	}
+	fread(oneDime, sizeof(unsigned char), Height*Width*BytesPerPixel, file);
+	fclose(file);
+	//seperating the read image into 3 channels
+	while (count<Height*Width*BytesPerPixel)
+	{
+		for (int i = 0; i < Height; i++) 
+		{
+			for (int j = 0; j < Width; j++) 
+			{
+				Imagedata[i][j][0] = oneDime[count];
+				Imagedata[i][j][1] = oneDime[count + 1];
+				Imagedata[i][j][2] = oneDime[count + 2];
+				count += 3;
+
+			}
+		}
+	}
+	
+	
+	int pixelTotal = (Height*Width);
+	int noPixelBound = (pixelTotal) / quant;	
+		
+	//calculating histogram
+	for (int k = 0; k < 3; k++)
+	{
+		for (int i = 0; i < Height; i++)
+		{
+			for (int j = 0; j < Width; j++)
+			{
+
+				for (int y = 0; y < 256; y++)
+				{
+					if ((int)Imagedata[i][j][k] == y)
+					{
+						hist[y][k] += 1;
+					}
+				}
+
+			}
+		}
+	}
+
+	//Quantization
+	int newColour[quant][BytesPerPixel] = { {0} };
+	int bound[quant + 1][BytesPerPixel] = { {0} };
+	int pixelsBound[quant+1] = { 0 };
+	int dummy;
+
+	//partition the histogram into quant no of bins
+	for (int k = 0; k < 3; k++)
+	{
+		int i = 1;
+		int noPixels = 0;
+		bound[0][k] = 0;
+		bound[quant][k] = 255;
+		pixelsBound[0] = 0;
+		pixelsBound[quant] = Height * Width;
+
+		for (int h = 0; h < 256; h++)
+		{
+			noPixels += hist[h][k];
+			if ((noPixels >= noPixelBound*i) && (i < quant))
+			{
+				bound[i][k] = h;				
+				pixelsBound[i] = noPixels;				
+				i++;
+			}
+		}	
+
+		//calculating mean per bound
+		int quantMean = 0;
+		for (int j = 0; j < quant; j++) 
+		{				
+			for (int h = 0; h <= 256; h++)
+			{
+				if ((h >= bound[j][k]) && (h < bound[j+1][k]))
+				{
+					quantMean += (h*hist[h][k]);
+				}				
+			}			
+			newColour[j][k] = quantMean / (pixelsBound[j+1]-pixelsBound[j]);
+			quantMean = 0;
+					
+		}		
+	}
+	//Colour quantization application
+	for (int k = 0; k < 3; k++) 
+	{
+		for (int c = 0; c < quant; c++)
+		{
+			for (int y = 0; y < 256; y++)
+			{
+				for (int i = 0; i < Height; i++)
+				{
+					for (int j = 0; j < Width; j++)
+					{
+						if (((int)Imagedata[i][j][k] >= bound[c][k])&&((int)Imagedata[i][j][k]<bound[c+1][k]))
+						{
+							Imagedata[i][j][k] = newColour[c][k];
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	
+	for (int i = 0; i < Height; i++)
+	{
+		for (int j = 0; j < Width; j++)
+		{
+			int k = 0;
+			{
+				for (int y = 0; y < 256; y++)
+				{
+					if ((int)Imagedata[i][j][k] == y)
+					{
+						chist[y] += 1;
+					}
+				}
+			}
+		}
+	}
+	
+	//Oilpainting mask
+	for (int k = 0; k < 3; k++)
+	{
+		//Write image into a padded image
+		for (int i = 0; i < Height; i++)
+		{
+			for (int j = 0; j < Width; j++)
+			{
+				paddedImageArray[i + radius][j + radius][k] = Imagedata[i][j][k];
+			}
+		}
+	}
+
+	for (int k = 0; k < 3; k++)
+	{
+		for (int a = 0; a < radius; a++)
+		{
+			for (int b = 0; b < Width; b++) {
+				paddedImageArray[a][b + radius][0] = Imagedata[radius - a][b][0];
+			}
+		}
+		for (int a = Height + radius - 1; a >= Height; a--)
+		{
+			for (int b = 0; b < Width; b++) {
+				paddedImageArray[a][b + radius][0] = Imagedata[a - radius - 1][b][0];
+			}
+		}
+		for (int a = 0; a < radius; a++)
+		{
+			for (int b = 0; b < Height; b++) {
+				paddedImageArray[b + radius][a][0] = Imagedata[b][radius - a][0];
+			}
+		}
+		for (int a = Width + radius - 1; a >= Width; a--)
+		{
+			for (int b = 0; b < Height; b++) {
+				paddedImageArray[b + radius][a][0] = Imagedata[b][a - radius - 1][0];
+			}
+		}
+
+		for (int y = radius; y <= Height; y++)
+		{
+			for (int x = radius; x <= Width; x++)
+			{
+				memset(chist, 0, sizeof(chist));
+				for (int i = y - radius; i <= y + radius; i++)
+				{
+					for (int j = x - radius; j <= x + radius; j++)
+					{
+						chist[paddedImageArray[i][j][k]]++;
+					}
+				}
+				paddedImageArray2[y][x][k] = findMax(chist);
+			}
+		}
+	}
+		
+	//printing histogram values onto a CSV file
+	{
+	ofstream myfile;
+	myfile.open("QuantHist.csv");	
+	for (int y = 0; y < 256; y++) {
+		myfile << chist[y] << "\n";
+	}
+	//myfile << newColor1 << "\n" << newColor2 << "\n" << newColor3 << "\n"<< newColor4<<"\n";
+	//<< noPixelsBound1 << "\n" << noPixelsBound2 << "\n" << noPixelsBound3 << "\n";
+	myfile.close();
+	}
+	
+
+	
+	//Writing to opImage
+	for (int i = radius; i < Height; i++)
+	{
+		for (int j = radius; j < Width; j++)
+		{
+			for (int k = 0; k < 3; k++)
+			{
+				Imagedata[i][j][k] = paddedImageArray2[i][j][k];
+			}
+		}
+	}
+	
+	count = 0;
+	while (count<Height*Width*BytesPerPixel)
+	{
+		for (int i = 0; i < Height; i++)
+		{
+			for (int j = 0; j < Width; j++)
+			{
+				oneDime[count]= Imagedata[i][j][0];
+				oneDime[count + 1]= Imagedata[i][j][1];
+				oneDime[count + 2]= Imagedata[i][j][2];
+				count += 3;
+
+			}
+		}
+	}
+	
+	// Write image data (filename specified by second argument) from image data matrix
+
+	if (!(file = fopen(argv[2], "wb"))) {
+		cout << "Cannot open file: " << argv[2] << endl;
+		exit(1);
+	}
+
+	fwrite(oneDime, sizeof(unsigned char), Height*Width*BytesPerPixel, file);
+	fclose(file);
+	return 0;
+
+}
+
+//Film Effect
+
+#include "stdafx.h"
+#include <stdio.h>
+#include <iostream>
+#include <stdlib.h>
+#include <fstream>
+#include <string.h>
+#include <math.h>
+
+
+using namespace std;
+
+
+int main(int argc, char *argv[])
+
+{
+	// Define file pointer and variables
+	FILE *file;
+	const int BytesPerPixel = 3;
+	const int Width = 256;
+	const int Height = 256;
+
+	// Check for proper syntax
+	if (argc < 3) {
+		cout << "Syntax Error - Incorrect Parameter Usage:" << endl;
+		cout << "program_name input_image.raw output_image.raw [BytesPerPixel = 1] [Size = 256]" << endl;
+		return 0;
+	}
+
+	// Allocate image data array
+	unsigned char oneDime[Height*Width*BytesPerPixel];
+	unsigned char Imagedata[Height][Width][BytesPerPixel];
+	unsigned char opImagedata[Height][Width][BytesPerPixel];
+	
+	int count = 0;
+	float myHist[256][BytesPerPixel] = { { 0 } };
+	
+	// Read image (filename specified by first argument) into image data matrix
+	if (!(file = fopen(argv[1], "rb"))) {
+		cout << "Cannot open file: " << argv[1] << endl;
+		exit(1);
+	}
+	fread(oneDime, sizeof(unsigned char), Height*Width*BytesPerPixel, file);
+	fclose(file);
+
+	//seperating the read image into 3 channels
+
+	while (count < Height*Width*BytesPerPixel)
+	{
+		for (int i = 0; i < Height; i++)
+		{
+			for (int j = 0; j < Width; j++)
+			{
+				Imagedata[i][j][0] = 255-oneDime[count];
+				Imagedata[i][j][1] = 255-oneDime[count + 1];
+				Imagedata[i][j][2] = 255-oneDime[count + 2];
+				count += 3;
+
+			}
+		}
+	}
+
+	//flipping the image
+	for (int k = 0; k < 3; k++)
+	{
+		for (int i = 0; i < Height; i++)
+		{
+			for (int j = 0; j < Width; j++)
+			{
+				opImagedata[i][j][k] = Imagedata[i][Width - j][k];
+				
+			}
+		}
+	}
+	float ratio1 = float((255.0 - 86.0) / 255.0);
+	float ratio2 = float((205.0 - 33.0) / 255.0);
+	float ratio3 = float((196.0 - 24.0) / 255.0);
+	
+	//shrinking the histogram
+	for (int i = 0; i < Height; i++)
+	{
+		for (int j = 0; j < Width; j++)
+		{
+
+			
+			opImagedata[i][j][0] = (ratio1)*(opImagedata[i][j][0]) + 86;
+			
+			opImagedata[i][j][1] = (ratio2)*(opImagedata[i][j][1]) + 33;
+			
+			opImagedata[i][j][2] = (ratio3)*(opImagedata[i][j][2]) + 24;
+
+		}
+	}
+	
+	for (int k = 0; k < 3; k++)
+	{
+		for (int i = 0; i < Height; i++)
+		{
+			for (int j = 0; j < Width; j++)
+			{
+
+				for (int y = 0; y < 256; y++)
+				{
+					if ((int)opImagedata[i][j][k] == y)
+					{
+						myHist[y][k] += 1;
+					}
+					
+				}
+
+			}
+		}
+	}
+	
+
+	
+	//printing histogram values onto a CSV file
+	{
+	ofstream myfile;
+	myfile.open("myRedHist.csv");
+	for (int y = 0; y < 256; y++) {
+	myfile << myHist[y][0] << "\n";
+	}
+	//myfile << newColor1 << "\n" << newColor2 << "\n" << newColor3 << "\n"<< newColor4<<"\n";
+	//<< noPixelsBound1 << "\n" << noPixelsBound2 << "\n" << noPixelsBound3 << "\n";
+	myfile.close();
+	}
+	
+	
+	//Writing to opImage
+	count = 0;
+	while (count<Height*Width*BytesPerPixel)
+	{
+		for (int i = 0; i < Height; i++)
+		{
+			for (int j = 0; j < Width; j++)
+			{
+				oneDime[count] = opImagedata[i][j][0];
+				oneDime[count + 1] = opImagedata[i][j][1];
+				oneDime[count + 2] = opImagedata[i][j][2];
+				count += 3;
+			}
+		}
+	}
+	// Write image data (filename specified by second argument) from image data matrix
+
+	if (!(file = fopen(argv[2], "wb"))) {
+		cout << "Cannot open file: " << argv[2] << endl;
+		exit(1);
+	}
+
+	fwrite(oneDime, sizeof(unsigned char), Height*Width*3, file);
+	fclose(file);
+	return 0;
+
+}
+
+//Image Denoising
+
+#include "stdafx.h"
+#include <stdio.h>
+#include <iostream>
+#include <stdlib.h>
+#include <fstream>
+#include <string.h>
+#include <cmath>
+
+
+
+using namespace std;
+int findMedian(int array[]) {
+	
+	int radius = 1;
+	int filterDimension = (radius * 2) + 1;
+	int filterCross = filterDimension * filterDimension;
+	int median = (filterCross + 1) / 2;
+
+	for (int j = 0; j < filterCross; j++) 
+	{
+		for (int i = 0; i < filterCross-j; i++) 
+		{
+			if (array[i + 1] < array[i]) 
+			{
+				int temp = array[i];
+				array[i] = array[i + 1];
+				array[i + 1] = temp;
+			}
+		}
+	}
+	return array[median];
+}
+
+int findMean(int array2[]) {
+
+	int radius = 1;
+	int filterDimension = (radius * 2) + 1;
+	int filterCross = filterDimension * filterDimension;
+	int mean = 0;
+	int sum = 0;
+		for (int i = 0; i < filterCross; i++)
+		{
+			sum += array2[i];
+		}
+	
+	mean = sum / filterCross;
+	return mean;
+}
+
+int main(int argc, char *argv[])
+{
+	// Define file pointer and variables
+	FILE *file;
+	const int BytesPerPixel = 3;
+	const int Width = 512;
+	const int Height = 512;
+	const int radius = 1;
+	const int radius1 = 3;
+
+	// Check for proper syntax
+	if (argc < 4) {
+		cout << "Syntax Error - Incorrect Parameter Usage:" << endl;
+		cout << "program_name input_image.raw input2.raw output_image.raw [BytesPerPixel = 1] [Size = 256]" << endl;
+		return 0;
+	}
+
+	// Allocate image data array
+	unsigned char oneDime[Height*Width*BytesPerPixel];
+	unsigned char oneDime2[Height*Width*BytesPerPixel];
+	unsigned char Imagedata[Height][Width][BytesPerPixel]= { { { 0 } } };
+	unsigned char ImagedataNoiseFree[Height][Width][BytesPerPixel]= { { { 0 } } };
+	unsigned char paddedImageArray[Height + radius][Width + radius][BytesPerPixel] = { { { 0 } } };
+	unsigned char paddedImageArray2[Height + radius][Width + radius][BytesPerPixel] = { { { 0 } } };
+	//unsigned char opImagedata[Height][Width][1];
+
+	int count = 0;
+	//int hist[256][BytesPerPixel] = { { 0 } };
+	//int chist[256] = { 0 };
+
+	// Read image (filename specified by first argument) into image data matrix
+	if (!(file = fopen(argv[1], "rb"))) {
+		cout << "Cannot open file: " << argv[1] << endl;
+		exit(1);
+	}
+	fread(oneDime, sizeof(unsigned char), Height*Width*BytesPerPixel, file);
+	fclose(file);
+	//seperating the read image into 3 channels
+	while (count < Height*Width*BytesPerPixel)
+	{
+		for (int i = 0; i < Height; i++)
+		{
+			for (int j = 0; j < Width; j++)
+			{
+				Imagedata[i][j][0] = oneDime[count];
+				Imagedata[i][j][1] = oneDime[count + 1];
+				Imagedata[i][j][2] = oneDime[count + 2];
+				count += 3;
+
+			}
+		}
+	}
+
+	// Read image (filename specified by first argument) into image data matrix
+	if (!(file = fopen(argv[2], "rb"))) {
+		cout << "Cannot open file: " << argv[2] << endl;
+		exit(1);
+	}
+	fread(oneDime2, sizeof(unsigned char), Height*Width*BytesPerPixel, file);
+	fclose(file);
+	//seperating the read image into 3 channels
+	count = 0;
+	while (count < Height*Width*BytesPerPixel)
+	{
+		for (int i = 0; i < Height; i++)
+		{
+			for (int j = 0; j < Width; j++)
+			{
+				ImagedataNoiseFree[i][j][0] = oneDime2[count];
+				ImagedataNoiseFree[i][j][1] = oneDime2[count + 1];
+				ImagedataNoiseFree[i][j][2] = oneDime2[count + 2];
+				count += 3;
+
+			}
+		}
+	}
+	
+	///////////////////////// INSERT YOUR PROCESSING CODE HERE /////////////////////////
+	//int pixelTotal = (Height*Width);
+	//int pixelBound = (pixelTotal) / 4;
+	//int bound1, bound2, bound3 = 0;
+	//int noPixelsBound1, noPixelsBound2, noPixelsBound3 = 0;
+
+	const int filterDimension = (radius * 2) + 1;
+	int arrayMedian[filterDimension*filterDimension + 1] = { 0 };
+	int arrayMean[filterDimension*filterDimension+1] = { 0 };
+
+	
+	//Writing into a padded image
+	for (int k = 0; k < 3; k++)
+	{
+		//Write image into a padded image
+		for (int i = 0; i < Height; i++)
+		{
+			for (int j = 0; j < Width; j++)
+			{
+				paddedImageArray[i + radius][j + radius][k] = Imagedata[i][j][k];
+			}
+		}
+	}
+
+	for (int k = 0; k < 3; k++)
+	{
+		//Top
+		for (int a = 0; a < radius; a++)
+		{
+			for (int b = 0; b < Width; b++) {
+				paddedImageArray[a][b + radius][0] = Imagedata[radius - a][b][0];
+			}
+		}
+		//Bottom
+		for (int a = Height + radius - 1; a >= Height; a--)
+		{
+			for (int b = 0; b < Width; b++) {
+				paddedImageArray[a][b + radius][0] = Imagedata[a - radius - 1][b][0];
+			}
+		}
+		//Left
+		for (int a = 0; a < radius; a++)
+		{
+			for (int b = 0; b < Height; b++) {
+				paddedImageArray[b + radius][a][0] = Imagedata[b][radius - a][0];
+			}
+		}
+		//Right
+		for (int a = Width + radius - 1; a >= Width; a--)
+		{
+			for (int b = 0; b < Height; b++) {
+				paddedImageArray[b + radius][a][0] = Imagedata[b][a - radius - 1][0];
+			}
+		}
+
+		//median filter implementation
+		for (int y = radius; y <= Height; y++)
+		{
+			for (int x = radius; x <= Width; x++)
+			{
+				int c = 0;
+				for (int i = y - radius; i <= y + radius; i++)
+				{
+					for (int j = x - radius; j <= x + radius; j++)
+					{
+						arrayMedian[c] = (int)paddedImageArray[i][j][k];
+						c++;
+					}
+				}
+				paddedImageArray2[y][x][k] = findMedian(arrayMedian);
+				memset(arrayMedian, 0, sizeof(arrayMedian));
+			}
+		}	
+		
+	}
+	//mean filter implementation
+	for (int k = 0; k < 3; k++)
+	{
+		for (int y = radius; y <= Height; y++)
+		{
+			for (int x = radius; x <= Width; x++)
+			{
+				int c = 0;
+				for (int i = y - radius; i <= y + radius; i++)
+				{
+					for (int j = x - radius; j <= x + radius; j++)
+					{
+						arrayMean[c] = (int)paddedImageArray2[i][j][k];
+						c++;
+					}
+				}
+				paddedImageArray[y][x][k] = findMean(arrayMean);
+				memset(arrayMean, 0, sizeof(arrayMean));
+			}
+		}
+	}
+	//median filter implementation
+	for (int k = 0; k < 3; k++)
+	{
+		for (int y = radius1; y <= Height; y++)
+		{
+			for (int x = radius1; x <= Width; x++)
+			{
+				int c = 0;
+				for (int i = y - radius1; i <= y + radius1; i++)
+				{
+					for (int j = x - radius1; j <= x + radius1; j++)
+					{
+						arrayMedian[c] = (int)paddedImageArray[i][j][k];
+						c++;
+					}
+				}
+				paddedImageArray2[y][x][k] = findMedian(arrayMedian);
+				memset(arrayMedian, 0, sizeof(arrayMedian));
+			}
+		}
+	}
+
+	
+	
+	
+	
+	/*
+	//printing histogram values onto a CSV file
+	{
+	ofstream myfile;
+	myfile.open("QuantHist.csv");
+	for (int k = 0; k < 3; k++)
+	{
+		for (int y = 0; y <= Height + radius; y++)
+		{
+			for (int x = 0; x <= Width + radius; x++)
+			{
+				myfile << paddedImageArray2 << "\n";
+			}
+		}
+	}
+	//myfile << newColor1 << "\n" << newColor2 << "\n" << newColor3 << "\n"<< newColor4<<"\n";
+	//<< noPixelsBound1 << "\n" << noPixelsBound2 << "\n" << noPixelsBound3 << "\n";
+	myfile.close();
+	}
+	*/
+
+
+	//Writing to opImage
+
+	for (int i = 0; i < Height; i++)
+	{
+		for (int j = 0; j < Width; j++)
+		{
+			for (int k = 0; k < 3; k++)
+			{
+				Imagedata[i][j][k] = paddedImageArray2[i+radius][j+radius][k];
+			}
+		}
+	}
+	
+	float inversePixelTot = (Height*Width);
+	float MSE[BytesPerPixel] = { 0 };
+	
+	//MSE
+
+	for (int k = 0; k < 3; k++) {
+		for (int i = 0; i < Height; i++) {
+			for (int j = 0; j < Width; j++) {
+
+				MSE[k] += ((Imagedata[i][j][k] - ImagedataNoiseFree[i][j][k])*(Imagedata[i][j][k] - ImagedataNoiseFree[i][j][k]))/(float)inversePixelTot;
+
+			}
+		}
+	}
+	//max
+	int max = 255;
+	//PSNR
+	double PSNR[BytesPerPixel];
+	for (int k = 0; k < 3; k++) 
+	{
+		PSNR[k] = 10*log10((max*max) / (double)MSE[k]);
+	}
+
+	//printing PSNR values onto a CSV file
+	{
+		ofstream myfile;
+		myfile.open("PSNR.csv");
+		for (int y = 0; y < 3; y++) {
+			myfile <<"\n"<< PSNR[y] << "\n";
+		}
+		myfile.close();
+	}
+	
+	count = 0;
+	while (count < Height*Width*BytesPerPixel)
+	{
+		for (int i = 0; i < Height; i++)
+		{
+			for (int j = 0; j < Width; j++)
+			{
+				oneDime2[count] = Imagedata[i][j][0];
+				oneDime2[count + 1] = Imagedata[i][j][1];
+				oneDime2[count + 2] = Imagedata[i][j][2];
+				count += 3;
+			}
+		}
+	}
+	// Write image data (filename specified by second argument) from image data matrix
+
+	if (!(file = fopen(argv[3], "wb"))) {
+		cout << "Cannot open file: " << argv[3] << endl;
+		exit(1);
+	}
+
+	fwrite(oneDime2, sizeof(unsigned char), Height*Width*BytesPerPixel, file);
+	fclose(file);
+	return 0;
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
